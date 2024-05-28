@@ -137,6 +137,8 @@ func (l *logger) shrink(activities []string) {
 		buffer[idx].d += e.d
 	}
 	f.Close()
+	l.buffered = append(l.buffered, l.session...) // move the session entries over into the buffered slice
+	l.session = l.session[:0]                     // empty the session to avoid a double entry
 }
 
 func (l *logger) next() (entry, error) {
@@ -345,36 +347,6 @@ func (l *logger) refresh() ([]string, int, [2]int, [2]int, int, int) {
 	}
 
 	return ret, ridx, thisWk, prevWk, thisWk[0], prevYr
-}
-
-func (l *logger) active() map[string][]entry {
-	l.bidx = 0
-	l.sidx = 0
-	ret := make(map[string][]entry)
-	for e, err := l.next(); err != nil; e, err = l.next() {
-		if e.typ == removing {
-			delete(ret, e.a)
-			continue
-		}
-		if _, ok := ret[e.a]; !ok {
-			ret[e.a] = make([]entry, 0, 50)
-		}
-		ret[e.a] = append(ret[e.a], e)
-	}
-	return ret
-}
-
-func (l *logger) history() map[string][]entry {
-	l.bidx = 0
-	l.sidx = 0
-	ret := make(map[string][]entry)
-	for e, err := l.next(); err != nil; e, err = l.next() {
-		if _, ok := ret[e.a]; !ok {
-			ret[e.a] = make([]entry, 0, 50)
-		}
-		ret[e.a] = append(ret[e.a], e)
-	}
-	return ret
 }
 
 func fmtDuration(d time.Duration) string {
