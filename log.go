@@ -29,6 +29,20 @@ type entry struct {
 	d   time.Duration
 }
 
+func (e entry) String() string {
+	switch e.typ {
+	case selecting:
+		return fmt.Sprintf("%s\nc %s\n", e.a, e.t.Format(time.RFC3339))
+	case removing:
+		return fmt.Sprintf("%s\nd %s\n", e.a, e.t.Format(time.RFC3339))
+	case working:
+		return fmt.Sprintf("%s\nw %s %s\n", e.a, e.t.Format(time.RFC3339), e.d.Round(time.Second))
+	case resting:
+		return fmt.Sprintf("%s\nb %s %s\n", e.a, e.t.Format(time.RFC3339), e.d.Round(time.Second))
+	}
+	return ""
+}
+
 type logger struct {
 	sidx     int
 	bidx     int
@@ -57,18 +71,70 @@ func (l *logger) flush() {
 		return
 	}
 	for _, e := range l.session {
-		var str string
-		switch e.typ {
-		case selecting:
-			str = fmt.Sprintf("%s\nc %s\n", e.a, e.t.Format(time.RFC3339))
-		case removing:
-			str = fmt.Sprintf("%s\nd %s\n", e.a, e.t.Format(time.RFC3339))
-		case working:
-			str = fmt.Sprintf("%s\nw %s %s\n", e.a, e.t.Format(time.RFC3339), e.d.Round(time.Second))
-		case resting:
-			str = fmt.Sprintf("%s\nb %s %s\n", e.a, e.t.Format(time.RFC3339), e.d.Round(time.Second))
+		f.WriteString(e.String())
+	}
+	f.Close()
+}
+
+func sameDay(a, b time.Time) bool {
+	if a.Day() == b.Day() && a.Month() == b.Month() && a.Year() == b.Year() {
+		return true
+	}
+	return false
+}
+
+func zero(buf []entry) []entry {
+	for i := range buf {
+		buf[i].t = time.Time{}
+		buf[i].d = 0
+	}
+	return buf
+}
+
+func (l *logger) shrink(activities []string) {
+	l.bidx = 0
+	l.sidx = 0
+	f, err := os.Create(filepath.Join(logpath, logname))
+	if err != nil {
+		return
+	}
+	actIdx := make(map[string]int)
+	for i, v := range activities {
+		actIdx[v] = i * 2
+	}
+	buffer := make([]entry, len(activities)*2)
+	for k, v := range actIdx {
+		buffer[v].a = k
+		buffer[v].typ = working
+		buffer[v+1].a = k
+		buffer[v+1].typ = resting
+	}
+	var this time.Time
+	for e, err := l.next(); ; e, err = l.next() {
+		if !sameDay(this, e.t) {
+			for _, v := range buffer {
+				if v.d > 0 {
+					f.WriteString(v.String())
+				}
+			}
+			if err != nil { // we are done!
+				break
+			}
+			buffer = zero(buffer)
+			this = e.t
 		}
-		f.WriteString(str)
+		if e.typ != working && e.typ != resting {
+			continue
+		}
+		idx, ok := actIdx[e.a]
+		if !ok {
+			continue
+		}
+		if e.typ == resting {
+			idx += 1
+		}
+		buffer[idx].t = e.t
+		buffer[idx].d += e.d
 	}
 	f.Close()
 }

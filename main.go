@@ -67,6 +67,7 @@ type keymap struct {
 	stop   key.Binding
 	week   key.Binding
 	year   key.Binding
+	shrink key.Binding
 	next   key.Binding
 	prev   key.Binding
 	quit   key.Binding
@@ -168,6 +169,7 @@ func (m model) helpView() string {
 		m.keymap.change,
 		m.keymap.week,
 		m.keymap.year,
+		m.keymap.shrink,
 		m.keymap.stop,
 		m.keymap.quit,
 	})
@@ -190,6 +192,7 @@ func (m model) switchTo(s state) model {
 		m.keymap.stop.SetEnabled(false)
 		m.keymap.week.SetEnabled(m.week[0] > 0)
 		m.keymap.year.SetEnabled(m.year > 0)
+		m.keymap.shrink.SetEnabled(false)
 		m.keymap.next.SetEnabled(false)
 		m.keymap.prev.SetEnabled(false)
 		m.keymap.quit.SetEnabled(true)
@@ -202,6 +205,7 @@ func (m model) switchTo(s state) model {
 		m.keymap.stop.SetEnabled(false)
 		m.keymap.week.SetEnabled(false)
 		m.keymap.year.SetEnabled(false)
+		m.keymap.shrink.SetEnabled(false)
 		m.keymap.next.SetEnabled(false)
 		m.keymap.prev.SetEnabled(false)
 		m.keymap.quit.SetEnabled(false)
@@ -215,6 +219,7 @@ func (m model) switchTo(s state) model {
 		m.keymap.stop.SetEnabled(false)
 		m.keymap.week.SetEnabled(false)
 		m.keymap.year.SetEnabled(false)
+		m.keymap.shrink.SetEnabled(false)
 		m.keymap.next.SetEnabled(false)
 		m.keymap.prev.SetEnabled(false)
 		m.keymap.quit.SetEnabled(true)
@@ -228,6 +233,7 @@ func (m model) switchTo(s state) model {
 		m.keymap.stop.SetEnabled(false)
 		m.keymap.week.SetEnabled(false)
 		m.keymap.year.SetEnabled(false)
+		m.keymap.shrink.SetEnabled(false)
 		m.keymap.next.SetEnabled(false)
 		m.keymap.prev.SetEnabled(false)
 		m.keymap.quit.SetEnabled(true)
@@ -240,6 +246,7 @@ func (m model) switchTo(s state) model {
 		m.keymap.stop.SetEnabled(true)
 		m.keymap.week.SetEnabled(false)
 		m.keymap.year.SetEnabled(false)
+		m.keymap.shrink.SetEnabled(false)
 		m.keymap.next.SetEnabled(false)
 		m.keymap.prev.SetEnabled(false)
 		m.keymap.quit.SetEnabled(true)
@@ -252,6 +259,7 @@ func (m model) switchTo(s state) model {
 		m.keymap.stop.SetEnabled(true)
 		m.keymap.week.SetEnabled(false)
 		m.keymap.year.SetEnabled(false)
+		m.keymap.shrink.SetEnabled(false)
 		m.keymap.next.SetEnabled(false)
 		m.keymap.prev.SetEnabled(false)
 		m.keymap.quit.SetEnabled(true)
@@ -268,6 +276,7 @@ func (m model) switchTo(s state) model {
 		m.keymap.stop.SetEnabled(false)
 		m.keymap.week.SetEnabled(false)
 		m.keymap.year.SetEnabled(true)
+		m.keymap.shrink.SetEnabled(true)
 		m.keymap.next.SetEnabled(m.weekNxt[0] > 0)
 		m.keymap.prev.SetEnabled(m.weekPrev[0] > 0)
 		m.keymap.quit.SetEnabled(true)
@@ -284,6 +293,7 @@ func (m model) switchTo(s state) model {
 		m.keymap.stop.SetEnabled(false)
 		m.keymap.week.SetEnabled(true)
 		m.keymap.year.SetEnabled(false)
+		m.keymap.shrink.SetEnabled(true)
 		m.keymap.next.SetEnabled(m.yearNxt > 0)
 		m.keymap.prev.SetEnabled(m.yearPrev > 0)
 		m.keymap.quit.SetEnabled(true)
@@ -558,6 +568,10 @@ func main() {
 			year: key.NewBinding(
 				key.WithKeys("y"),
 				key.WithHelp("y", "yearly report"),
+			),
+			shrink: key.NewBinding(
+				key.WithKeys("s"),
+				key.WithHelp("s", "shrink the log"),
 			),
 			next: key.NewBinding(
 				key.WithKeys("n"),
