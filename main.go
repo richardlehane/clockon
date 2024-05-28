@@ -169,6 +169,8 @@ func (m model) helpView() string {
 		m.keymap.change,
 		m.keymap.week,
 		m.keymap.year,
+		m.keymap.next,
+		m.keymap.prev,
 		m.keymap.shrink,
 		m.keymap.stop,
 		m.keymap.quit,
@@ -433,6 +435,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m.switchTo(weekly), nil
 			case key.Matches(msg, m.keymap.year):
 				return m.switchTo(yearly), nil
+			case key.Matches(msg, m.keymap.shrink):
+				m.log.shrink(m.activities)
+				m.keymap.shrink.SetEnabled(false)
+				return m, nil
 			case key.Matches(msg, m.keymap.next):
 				if m.state == weekly {
 					m.week = m.weekNxt
